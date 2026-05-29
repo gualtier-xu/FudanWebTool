@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+
+# Local secrets and runtime files
+.env
+*.log
+
+# Editors and OS
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
