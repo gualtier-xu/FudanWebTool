@@ -1,12 +1,14 @@
 # PyInstaller spec for the Windows tray executable.
 
+from PyInstaller.utils.hooks import collect_data_files
+
 block_cipher = None
 
 a = Analysis(
     ["src/fudan_web_tool/tray_main.py"],
     pathex=["src"],
     binaries=[],
-    datas=[],
+    datas=collect_data_files("fudan_web_tool"),
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

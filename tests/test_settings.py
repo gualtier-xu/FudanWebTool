@@ -62,6 +62,7 @@ def test_json_settings_store_round_trips_non_sensitive_settings(tmp_path):
             interval=30,
             check_timeout=2.5,
             check_urls=("https://one.example", "https://two.example"),
+            autostart_enabled=True,
         )
     )
 
@@ -73,6 +74,7 @@ def test_json_settings_store_round_trips_non_sensitive_settings(tmp_path):
         interval=30,
         check_timeout=2.5,
         check_urls=("https://one.example", "https://two.example"),
+        autostart_enabled=True,
     )
 
 
