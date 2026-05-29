@@ -79,6 +79,14 @@ python -m pytest
 
 ## 使用方法
 
+### 预打包 EXE
+
+`dist\FudanWebTool.exe` 是 PyInstaller 打包出的独立 Windows 可执行文件。它已经包含 Python 运行时、项目代码、托盘图标、Qt 库以及托盘程序运行需要的其它依赖，所以运行时不需要源码目录，也不需要 Conda 环境或已安装的 `fudan-web-tool` 命令。
+
+你可以只复制 `FudanWebTool.exe` 到同一台 Windows 电脑上的其它文件夹中运行。用户设置、保存的凭据和流量累计仍然会写入 Windows 用户目录中的标准位置：`%APPDATA%\FudanWebTool\config.json`、`%APPDATA%\FudanWebTool\traffic.json` 和 Windows 凭据管理器。
+
+源码目录只在开发、测试、修改代码或重新打包 EXE 时需要。被 Git 忽略的 `build\` 目录只是可删除的构建缓存；被 Git 忽略的 `dist\` 目录保存生成好的可执行文件。
+
 以 Windows 托盘程序运行：
 
 ```powershell

@@ -95,6 +95,23 @@ python -m pytest
 
 ## Usage
 
+### Prebuilt EXE
+
+`dist\FudanWebTool.exe` is a standalone Windows executable built by PyInstaller.
+It includes the Python runtime, project code, tray icon, Qt libraries, and the
+other runtime dependencies needed by the tray app, so it does not need the
+source tree, a Conda environment, or `fudan-web-tool` installed to run.
+
+You can copy just `FudanWebTool.exe` to another folder on the same Windows
+machine and run it from there. User settings, saved credentials, and traffic
+totals are still stored outside the project in the normal Windows user
+locations: `%APPDATA%\FudanWebTool\config.json`,
+`%APPDATA%\FudanWebTool\traffic.json`, and Windows Credential Manager.
+
+The source tree is only needed for development, testing, changing the code, or
+building a new EXE. The ignored `build\` directory is disposable build cache;
+the ignored `dist\` directory contains the generated executable.
+
 Run as a Windows tray app:
 
 ```powershell
