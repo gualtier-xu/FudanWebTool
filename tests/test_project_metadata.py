@@ -50,3 +50,12 @@ def test_windows_packaging_filters_conda_icu_dlls():
     assert "_without_conda_icu" in spec
     assert "icuuc.dll" in spec
     assert "icudt" in spec
+
+
+def test_windows_packaging_replaces_base_openssl_dlls():
+    spec = (ROOT / "fudan-web-tool-tray.spec").read_text(encoding="utf-8")
+
+    assert "_with_current_env_openssl" in spec
+    assert "libssl-3-x64.dll" in spec
+    assert "libcrypto-3-x64.dll" in spec
+    assert "sys.prefix" in spec

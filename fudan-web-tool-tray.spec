@@ -1,5 +1,8 @@
 # PyInstaller spec for the Windows tray executable.
 
+import sys
+from pathlib import Path
+
 from PyInstaller.utils.hooks import collect_data_files
 
 block_cipher = None
@@ -14,6 +17,18 @@ def _without_conda_icu(entries):
         if entry[0].lower() not in blocked_names and not entry[0].lower().startswith("icudt")
     ]
 
+
+def _with_current_env_openssl(entries):
+    """Use OpenSSL DLLs from the build environment, not conda/base."""
+    openssl_names = {"libssl-3-x64.dll", "libcrypto-3-x64.dll"}
+    env_bin = Path(sys.prefix) / "Library" / "bin"
+    result = [entry for entry in entries if entry[0].lower() not in openssl_names]
+    for name in sorted(openssl_names):
+        dll_path = env_bin / name
+        if dll_path.exists():
+            result.append((name, str(dll_path), "BINARY"))
+    return result
+
 a = Analysis(
     ["src/fudan_web_tool/tray_main.py"],
     pathex=["src"],
@@ -27,6 +42,7 @@ a = Analysis(
     noarchive=False,
 )
 a.binaries = _without_conda_icu(a.binaries)
+a.binaries = _with_current_env_openssl(a.binaries)
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
