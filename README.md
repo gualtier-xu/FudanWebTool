@@ -14,9 +14,12 @@ campus network channel.
 ## Features
 
 - Windows system tray icon with status, check-now, pause/resume, settings, and quit actions
+- Optional current-user start at login from the settings window
+- Network usage summary for the active network adapter: upload/download speed, daily total, and monthly total
 - Periodic network health checks
 - Campus gateway login request
 - User settings stored in `%APPDATA%\FudanWebTool\config.json`
+- Traffic totals stored in `%APPDATA%\FudanWebTool\traffic.json`
 - Password stored through Windows Credential Manager via `keyring`
 - Logs for reconnect attempts and failures
 - False-online recovery by logging out before reconnecting
@@ -26,6 +29,10 @@ campus network channel.
 The tray settings window is the preferred configuration path. It stores
 non-sensitive settings in `%APPDATA%\FudanWebTool\config.json` and stores the
 password in Windows Credential Manager.
+
+The Start at login checkbox creates or removes a current-user startup script in
+the Windows Startup folder. It does not install a service, create a scheduled
+task, or write a registry Run key.
 
 `.env` remains supported for command-line use and migration. Copy
 `.env.example` to `.env` only if you want to use environment-based setup:
@@ -48,6 +55,17 @@ Available settings:
 
 Tray settings take priority over `.env`; `.env` takes priority over built-in
 defaults.
+
+## Network Usage
+
+The tray app samples the active non-virtual network adapter once per second. It
+shows current upload/download speed plus daily and monthly totals. These totals
+are local estimates from Windows network counters, not the campus portal's
+billing or accounting data.
+
+If Windows resets an adapter counter, the app ignores the negative delta instead
+of subtracting from the total. If multiple adapters or VPNs are active, the app
+chooses the busiest non-virtual adapter for this first version.
 
 ## Development
 

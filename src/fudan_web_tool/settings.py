@@ -22,6 +22,7 @@ class UserSettings:
     interval: int | None = None
     check_timeout: float | None = None
     check_urls: tuple[str, ...] | None = None
+    autostart_enabled: bool | None = None
 
 
 class CredentialStore(Protocol):
