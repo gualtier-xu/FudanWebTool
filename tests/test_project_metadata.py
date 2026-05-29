@@ -42,3 +42,11 @@ def test_tray_icon_is_packaged():
     assert (ROOT / "src" / "fudan_web_tool" / "assets" / "tray_icon.png").exists()
     assert data["tool"]["setuptools"]["package-data"]["fudan_web_tool"] == ["assets/tray_icon.png"]
     assert "collect_data_files(\"fudan_web_tool\")" in spec
+
+
+def test_windows_packaging_filters_conda_icu_dlls():
+    spec = (ROOT / "fudan-web-tool-tray.spec").read_text(encoding="utf-8")
+
+    assert "_without_conda_icu" in spec
+    assert "icuuc.dll" in spec
+    assert "icudt" in spec

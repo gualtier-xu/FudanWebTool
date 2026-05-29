@@ -4,6 +4,16 @@ from PyInstaller.utils.hooks import collect_data_files
 
 block_cipher = None
 
+
+def _without_conda_icu(entries):
+    """Let QtCore use Windows ICU instead of bundling conda/base ICU DLLs."""
+    blocked_names = {"icuuc.dll"}
+    return [
+        entry
+        for entry in entries
+        if entry[0].lower() not in blocked_names and not entry[0].lower().startswith("icudt")
+    ]
+
 a = Analysis(
     ["src/fudan_web_tool/tray_main.py"],
     pathex=["src"],
@@ -16,6 +26,7 @@ a = Analysis(
     excludes=[],
     noarchive=False,
 )
+a.binaries = _without_conda_icu(a.binaries)
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
