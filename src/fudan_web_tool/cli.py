@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import argparse
 import logging
+from pathlib import Path
+import subprocess
 import sys
 import time
 
 from .config import ConfigError, load_config
 from .connectivity import ConnectivityChecker
+from .monitor import BackgroundMonitor
 from .portal import PortalClient
 from .recovery import RecoveryManager
 
@@ -19,12 +22,32 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("status", help="check connectivity and portal status without logging in")
     subparsers.add_parser("once", help="run one recovery attempt")
     subparsers.add_parser("watch", help="keep monitoring and recover when disconnected")
+    tray_parser = subparsers.add_parser("tray", help="run as a Windows system tray application")
+    tray_parser.add_argument(
+        "--foreground",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     configure_logging()
     args = build_parser().parse_args(argv)
+    if args.command == "tray":
+        if not args.foreground:
+            return launch_detached_tray_app()
+        try:
+            return run_tray_app()
+        except ModuleNotFoundError as exc:
+            if exc.name == "PySide6" or "PySide6" in str(exc):
+                print(
+                    "PySide6 is not installed in this Python environment. "
+                    "Update the fudan-web-tool environment before running the tray app.",
+                    file=sys.stderr,
+                )
+                return 2
+            raise
     try:
         config = load_config(require_credentials=args.command != "status")
     except ConfigError as exc:
@@ -69,10 +92,51 @@ def _status(portal: PortalClient, connectivity: ConnectivityChecker) -> int:
 
 
 def _watch(manager: RecoveryManager, interval: int) -> int:
+    monitor = BackgroundMonitor(manager, interval)
     while True:
-        result = manager.run_once()
+        result = monitor.run_cycle_if_active()
         logging.info("%s: %s; next check in %s seconds", result.action, result.message, interval)
         time.sleep(interval)
+
+
+def run_tray_app() -> int:
+    from .tray_app import run_tray_app as run
+
+    return run()
+
+
+def launch_detached_tray_app() -> int:
+    executable = _existing_pythonw(sys.executable) or sys.executable
+    creationflags = 0
+    startupinfo = None
+    if sys.platform == "win32":
+        creationflags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = 0
+
+    subprocess.Popen(
+        [executable, "-m", "fudan_web_tool", "tray", "--foreground"],
+        cwd=None,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        close_fds=True,
+        creationflags=creationflags,
+        startupinfo=startupinfo,
+    )
+    print("FudanWebTool tray is running in the background.")
+    return 0
+
+
+def _existing_pythonw(executable: str) -> str | None:
+    path = Path(executable)
+    if path.name.lower() != "python.exe":
+        return None
+    pythonw = path.with_name("pythonw.exe")
+    if pythonw.exists():
+        return str(pythonw)
+    return None
 
 
 if __name__ == "__main__":
