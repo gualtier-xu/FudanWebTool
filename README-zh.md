@@ -2,21 +2,25 @@
 
 [English README](README.md)
 
-FudanWebTool 是一个轻量级命令行工具，用于监测复旦校园网的真实外网连通性，并在断线时自动重新认证。
+FudanWebTool 是一个轻量级 Windows 托盘工具，用于监测复旦校园网的真实外网连通性，并在断线时自动重新认证。
 
-它以前台命令行守护进程的形式运行。工具会先检测真实外网是否可达，只有需要恢复网络时才访问复旦认证门户。如果门户页面显示“认证成功”，但外网实际不可达，工具会先注销当前假在线状态，再重新选择校园网出口登录。
+托盘程序在后台运行，不保留持续占用的控制台窗口。它会先检测真实外网是否可达，只有需要恢复网络时才访问复旦认证门户。如果门户显示已经认证成功，但外网实际不可达，工具会先注销当前假在线状态，再重新选择校园网出口登录。
 
 ## 功能
 
+- Windows 任务栏右下角托盘图标，支持状态、立即检查、暂停/继续、设置和退出
 - 周期性网络健康检查
 - 校园网网关登录请求
-- 通过环境变量安全配置
+- 非敏感设置保存到 `%APPDATA%\FudanWebTool\config.json`
+- 密码通过 Windows 凭据管理器保存，不写入配置文件
 - 输出重连尝试和失败原因日志
 - 针对“门户已认证但外网不可用”的假在线状态，自动注销后重连
 
 ## 配置
 
-先复制 `.env.example` 为本地 `.env`，再填写你的本地账号信息。真实账号和密码只应保存在 `.env` 中。
+推荐通过托盘图标里的设置窗口配置。设置窗口会把非敏感设置保存到 `%APPDATA%\FudanWebTool\config.json`，把密码保存到 Windows 凭据管理器。
+
+`.env` 仍然保留，用于命令行使用或从旧版本迁移。只有在你希望继续使用环境变量配置时，才需要复制 `.env.example`：
 
 ```powershell
 Copy-Item .env.example .env
@@ -27,16 +31,14 @@ Copy-Item .env.example .env
 可用配置项：
 
 - `FUDAN_NET_USERNAME`：校园网用户名
-- `FUDAN_NET_PASSWORD`：校园网密码
+- `FUDAN_NET_PASSWORD`：`.env` 模式下的校园网密码
 - `FUDAN_NET_BASE_URL`：认证门户地址，默认 `http://10.102.250.36`
-- `FUDAN_NET_CHANNEL_NAME`：网络出口名称，默认 `校园网`
-- `FUDAN_NET_INTERVAL`：watch 模式两次检测之间的间隔秒数，默认 `5`
+- `FUDAN_NET_CHANNEL_NAME`：网络出口名称，默认校园网
+- `FUDAN_NET_INTERVAL`：监测间隔秒数，默认 `5`
 - `FUDAN_NET_CHECK_TIMEOUT`：单个外网目标的检测超时时间，默认 `3`
 - `FUDAN_NET_CHECK_URLS`：用于检测真实外网连通性的 URL 列表，使用英文逗号分隔
 
-## 文档维护
-
-修改面向用户的安装、配置或使用说明时，请保持 `README.md` 和 `README-zh.md` 同步。
+配置优先级：托盘设置高于 `.env`，`.env` 高于内置默认值。
 
 ## 开发环境
 
@@ -55,29 +57,30 @@ conda env update -f environment.yml --prune
 conda activate fudan-web-tool
 ```
 
-如果 PowerShell 中无法使用 `conda activate`，先初始化 Conda，然后重启终端：
-
-```powershell
-conda init powershell
-```
-
-命令行入口会安装到这个 Conda 环境中，所以运行工具前请先激活环境：
-
-```powershell
-conda activate fudan-web-tool
-fudan-web-tool status
-```
-
 也可以使用普通 Python 虚拟环境：
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -e .[dev]
+python -m pip install -e .[dev,build]
 python -m pytest
 ```
 
 ## 使用方法
+
+以 Windows 托盘程序运行：
+
+```powershell
+fudan-web-tool tray
+```
+
+这个命令会启动独立的后台托盘进程，然后把控制权还给终端。关闭终端不会关闭托盘程序。需要停止时，请使用托盘菜单里的退出。
+
+仅调试时，可以让托盘循环留在当前终端：
+
+```powershell
+fudan-web-tool tray --foreground
+```
 
 只检查当前状态，不执行登录：
 
@@ -96,3 +99,17 @@ fudan-web-tool once
 ```powershell
 fudan-web-tool watch
 ```
+
+## 打包 EXE
+
+安装构建依赖后，运行：
+
+```powershell
+.\scripts\build-windows.ps1
+```
+
+PyInstaller 配置使用 `console=False`，打包后的程序会作为后台托盘程序启动，而不是保留持续控制台窗口。
+
+## 文档维护
+
+修改面向用户的安装、配置或使用说明时，请保持 `README.md` 和 `README-zh.md` 同步。

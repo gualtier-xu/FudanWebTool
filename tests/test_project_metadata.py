@@ -18,3 +18,17 @@ def test_env_file_is_ignored_and_example_has_no_secrets():
     assert ".env" in gitignore
     assert "FUDAN_NET_PASSWORD=" in env_example
     assert "secret" not in env_example.lower()
+
+
+def test_pyproject_declares_tray_and_packaging_dependencies():
+    data = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+
+    assert "PySide6>=6.7" in data["project"]["dependencies"]
+    assert "keyring>=25.0" in data["project"]["dependencies"]
+    assert "platformdirs>=4.0" in data["project"]["dependencies"]
+    assert "pyinstaller>=6.0" in data["project"]["optional-dependencies"]["build"]
+
+
+def test_windows_packaging_files_exist():
+    assert (ROOT / "fudan-web-tool-tray.spec").exists()
+    assert (ROOT / "scripts" / "build-windows.ps1").exists()
