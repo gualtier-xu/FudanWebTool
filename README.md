@@ -1,6 +1,7 @@
 # FudanWebTool
 
-Tools for keeping Fudan campus network sessions online.
+A lightweight tool for monitoring Fudan campus network connectivity and
+automatically re-authenticating when disconnected.
 
 This project will provide a small automation script that monitors network
 connectivity and re-authenticates when the campus gateway drops the session.
